@@ -1,38 +1,47 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, Button, TextInput } from 'react-native';
+import { StyleSheet, Text, View, Button,FlatList } from 'react-native';
+
+import ActItem from './components/ActItem';
+import ActInput from './components/ActInput';
 
 
 export default function App() {
-  const [enteredActivity, setEnteredActivity] = useState('');
   const [activities, setActivities] = useState([])
-  const actInputHandler = (enteredText) => {
-    setEnteredActivity(enteredText);
+  const [addMode,setAddMode] = useState(false)
+  const addActivityHandler = actName => {
+    setActivities(currentActivities => [...
+        currentActivities, 
+        {id: Math.random().toString(), value: actName}]);
+    setAddMode(false);
   };
-  const addActivityHandler = () => {
-    setActivities([...activities, enteredActivity]);
+
+  const removeGoalHandler = actID =>{
+    setActivities(currentActivities => {
+      return currentActivities.filter(activity => activity.id !== actID);
+    });
+  };
+
+  const cancelActInputHandler = () => {
+    setAddMode(false)
   };
   return (
     <View style={styles.screen}>
-
-      <View style={styles.inputContainer}>
-        <TextInput
-          placeholder="Enter activity"
-          style={styles.actInput}
-          onChangeText={actInputHandler}
-          value={enteredActivity}
-          />
-        <Button 
-        title="Add"
-        onPress={addActivityHandler}
-        />
-      </View>
-      <View>
-        {activities.map((act) => 
-        <View style={styles.listItem}>
-          <Text key={act}>{act}</Text>
-        </View>
-        )}
-      </View>
+      <Button title="Add new Activity" onPress={() => setAddMode(true)}/>
+      <ActInput 
+        visible = {addMode} 
+        onAddActivity={addActivityHandler}
+        visibleHandler = {cancelActInputHandler}
+      />
+      {/*  Flat list gives a better performance than scroll view because it doesn't render components that can't be viewed  */}
+      <FlatList
+      keyExtractor={(item,index) => item.id}
+       data={activities} 
+       renderItem={itemData => 
+        <ActItem 
+        id ={itemData.item.id} 
+        onDelete={removeGoalHandler} 
+        activity={itemData.item.value}/>
+      } />
     </View>
   );
 }
@@ -40,23 +49,5 @@ export default function App() {
 const styles = StyleSheet.create({
   screen: {
     padding: 50
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center'
-  },
-  actInput: {
-    width: '80%',
-    borderBottomColor: 'black', 
-    borderWidth: 1, 
-    padding: 10
-  }, 
-  listItem: {
-    padding: 10,
-    margin: 10,
-    backgroundColor: '#ccc',
-    borderColor: 'black',
-    borderWidth: 1
   }
 });
